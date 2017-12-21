@@ -1,0 +1,1256 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname |Assignment 8|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;;;; Assignment Eight
+
+(require 2htdp/image)
+(require 2htdp/universe)
+
+;;> Total: 142/170
+
+;;> General comment: good job getting the ship to stop sticking to the edge,
+;;> but now the ship bounces off the side when it should remain at
+;;> the edge if it reaches it until the user moves it in the other direction
+
+;;> A few of the functions below have single-letter names for inputs. This is
+;;> not very informative. See the style guide for more details.
+;;> -1 Part of this assignment was fixing things that were commented on for
+;;> assignment 6. In assignment 6, the fact that 's' is not a great input
+;;> name was commented on, but 's' reappears here! As do other single-letter
+;;> names...
+
+
+;; A Direction is one of
+;; - LEFT
+;; - RIGHT
+;; INTERP: represents the space ships and bullet direction
+
+;; Deconstructor
+;; direction-fn: Direction -> ???
+#;(define (direction-fn direction)
+    (cond
+      [(symbol=? LEFT direction) ...]
+      [(symbol=? RIGHT direction) ...]))
+
+;; A Space is a key event for firing space bullets
+
+;; A Location is a Posn
+
+;; Deconstructor
+;; location-fn: Location -> ???
+#;(define (location-fn location)
+    ... (posn-x location) ...
+    ... (posn-y location) ... )
+
+;; An Invader is a Posn
+
+;; Deconstructor
+;; invader-fn: Invader -> ???
+#;(define (invader-fn invader)
+    ... (posn-x invader) ...
+    ... (posn-y invader) ... )
+
+;; INTERP: represents the invaders
+
+;; A ListOfInvaders (LoI) is one of
+;; - empty
+;; - (cons Invader Invaders)
+;; INTERP: represents a list of invaders
+
+;; Deconstructor
+;; invaders-fn: Invaders -> ???
+#;(define (invaders-fn invaders)
+    (cond
+      [(empty? invaders) ... ]
+      [(cons? invaders) ... (posn-fn (first invaders)) ...
+                        ... (invaders-fn (rest invaders)) ... ]))
+
+
+;; A Spaceship is (make-spaceship Direction Location)
+;; INTERP: represents a spaceship with direction at a location in the world
+(define-struct spaceship (dir location))
+
+;; Deconstructor
+;; spaceship-fn : Spaceship -> ???
+#;(define (spaceship-fn spaceship)
+    ... (direction-fn (spaceship-dir spaceship)) ...
+    ... (location-fn (spaceship-location spaceship)) ...)
+
+;; A Spaceship Life is a Posn
+;; Deconstructor
+;; spaceship-life : SpaceshipLife -> ???
+#;(define (spaceship-life-fn spaceship-life)
+    ... (posn-x spaceship-life) ...
+    ... (posn-y spaceship-life) ... )
+
+;; A Life is a NonNegInteger
+
+;; A Space Bullet is a Posn
+;; Deconstructor
+;; bullet-fn: Bullet -> ???
+#;(define (space-bullet-fn space-bullet)
+    ... (posn-x space-bullet) ...
+    ... (posn-y space-bullet) ... )
+
+
+;; A ListOfSpaceBullets (LoSB) is one of
+;; - empty
+;; - (cons SpaceBullet LoSB)
+;; INTERP: represents a list of spaceship bullets
+
+;; Deconstructor
+;; space-bullets-fn: Bullets -> ???
+#;(define (space-bullets-fn space-bullets)
+    (cond
+      [(empty? space-bullets) ... ]
+      [(cons? space-bullets) ... (posn-fn (first space-bullets)) ...
+                       ... (space-bullets-fn (rest space-bullets)) ... ]))
+
+;; An Invader Bullet is a Posn
+;; Deconstructor
+;; invader-bullet-fn: Bullet -> ???
+#;(define (invader-bullet-fn invader-bullet)
+    ... (posn-x invader-bullet) ...
+    ... (posn-y invader-bullet) ... )
+
+;;> Good job defining Space Bullet and Invader Bullet, but try to keep it
+;;> one word (e.g. SpaceBullet, InvaderBullet)
+
+;; A ListOfInvaderBullets (LoIB) is one of
+;; - empty
+;; - (cons InvaderBullet LoIBS)
+;; INTERP: represents a list of invader bullets
+
+;; Deconstructor
+;; invader-bullets-fn: Bullets -> ???
+#;(define (invader-bullets-fn bullets)
+    (cond
+      [(empty? invader-bullets) ... ]
+      [(cons? invader-bullets) ... (posn-fn (first invader-bullets)) ...
+                       ... (invader-bullets-fn (rest invader-bullets)) ... ]))
+
+;; A Scoreboard is (make-scoreboard Location Score)
+;; INTERP: Scoreboard represents the score in the game
+;;         Location refers to the physical location of the scoreboard
+;;         Score represents a NonNegInteger
+(define-struct scoreboard (location score))
+
+;; Deconstructor
+;; scoreboard-fn : Scoreboard -> ???
+#;(define (scoreboard-fn scoreboard)
+    ... (location-fn (scoreboard-location scoreboard)) ...
+    ... (score-fn (scoreboard-score scoreboard)) ... )
+
+;; A Mothership is (make-mothership Direction Location)
+;; INTERP: represents a mothership with direction at a location in the world
+(define-struct mothership (dir location))
+
+;; Deconstructor
+;; mothership-fn : mothership -> ???
+#;(define (mothership-fn mothership)
+    ... (direction-fn (mothership-dir mothership)) ...
+    ... (location-fn (mothership-location mothership)) ...)
+
+;; A World is (make-world Spaceship Invader LoSB LoIB Life
+;;             Scoreboard Mothership Tick)
+;; INTERP:  Spaceship represents the spaceship in the game
+;;          Invader represents the invader in the game
+;;          LoSB represents all bullets fired by the spaceship
+;;          LoIB represents all bullets fired by the invaders
+;;          Life represents the number of lifes a player has
+;;          Scoreboard represents the score
+;;          Mothership represents the mothership in the game
+;;          Tick represnts the current world-tick value
+(define-struct world (spaceship invaders losb loib life scoreboard mothership
+                                tick))
+
+;; Deconstructor
+;; world-fn : World -> ???
+#;(define (world-fn world)
+    ... (spaceship-fn (world-spaceship world)) ...
+    ... (invaders-fn (world-invaders world)) ...
+    ... (losb-fn (world-losb world)) ...
+    ... (loib-fn (world-loib world)) ...
+    ... (life-fn (world-life world)) ...
+    ... (scoreboard-fn (world-scoreboard world)) ...
+    ... (mothership-fn (world-mothership world)) ...
+    ... (tick-fn (world-tick world)) ... )
+
+(define WIDTH 725) ;; scene width in pixels
+(define HEIGHT 725) ;; scene height in pixels
+(define BULLET-SIDE 5) ;; bullet side in pixels
+(define SPACESHIP-SIDE 20) ;; spaceship side in pixels
+(define INVADER-SIDE 20) ;; invader side in pixels
+(define MOTHERSHIP-SIDE 20) ;; mothership side in pixels
+(define HIT-SIDE 15) ;; distance, in pixels, for a hit
+(define MAX-SPACESHIP-BULLETS 3)
+(define MAX-INVADER-BULLETS 10)
+
+(define SPEED 40) ;; speed of the bullets
+
+(define BACKGROUND (empty-scene WIDTH HEIGHT))
+
+(define BULLET-IMAGE-SPACESHIP (square BULLET-SIDE 'solid 'black))
+(define BULLET-IMAGE-INVADER (square BULLET-SIDE 'solid 'red))
+
+(define SPACESHIP-IMAGE (rectangle 40 SPACESHIP-SIDE 'solid 'black))
+(define INVADER-IMAGE (square INVADER-SIDE 'solid 'red))
+(define MOTHERSHIP-IMAGE (square MOTHERSHIP-SIDE 'solid 'pink))
+
+(define SPACESHIP-INIT (make-spaceship 'left (make-posn 375 700)))
+(define INVADER-INIT
+  (list (make-posn 150 100)(make-posn 200 100)(make-posn 250 100)
+        (make-posn 300 100)(make-posn 350 100)(make-posn 400 100)
+        (make-posn 450 100)(make-posn 500 100)(make-posn 550 100)
+        (make-posn 150 150)(make-posn 200 150)(make-posn 250 150)
+        (make-posn 300 150)(make-posn 350 150)(make-posn 400 150)
+        (make-posn 450 150)(make-posn 500 150)(make-posn 550 150)
+        (make-posn 150 200)(make-posn 200 200)(make-posn 250 200)
+        (make-posn 300 200)(make-posn 350 200)(make-posn 400 200)
+        (make-posn 450 200)(make-posn 500 200)(make-posn 550 200)
+        (make-posn 150 250)(make-posn 200 250)(make-posn 250 250)
+        (make-posn 300 250)(make-posn 350 250)(make-posn 400 250)
+        (make-posn 450 250)(make-posn 500 250)(make-posn 550 250)))
+(define MOTHERSHIP-INIT (make-mothership 'left (make-posn 2000 50)))
+
+(define LIVES
+  (text/font "Lives:" 15 "black" #f 'modern 'normal 'bold #f))
+
+(define SCOREBOARD-IMAGE (text/font "Score: " 24 "black" #f
+                              'modern 'normal 'bold #f))
+
+(define WORLD-INIT (make-world SPACESHIP-INIT INVADER-INIT
+                               empty empty 3 0
+                               MOTHERSHIP-INIT 0))
+
+;;;; Signature
+;; draw-world : World -> Image
+;;;; Purpose
+;; GIVEN: a world
+;; RETURNS: an image representation of the given world
+(define (draw-world w)
+  (draw-spaceship
+   (world-spaceship w)
+   (draw-invaders
+    (world-invaders w)
+    (draw-spaceship-bullets
+     (world-losb w)
+     (draw-invader-bullets
+      (world-loib w) 
+      (draw-scoreboard
+       (world-scoreboard w)
+       (draw-current-score
+        (world-scoreboard w)
+         (draw-mothership
+          (world-mothership w)
+          (draw-lives
+           (world-life w)
+           (current-lives
+            (world-life w) BACKGROUND))))))))))
+
+#;(define (draw-timer t img)
+  (place-image (text/font (number->string t) 24 "black" #f
+                                 'modern 'normal 'bold #f)
+               400 400 img))
+
+;;;; Signature
+;; draw-lives : Life Image -> Image
+;;;; Purpose
+;; GIVEN: the number of lives and an image
+;; RETURNS: a new image that draws the number of lives on the given image
+(define (draw-lives l img)
+  (place-image LIVES
+               650 600 img))
+
+;;;; Tests
+(check-expect (draw-lives (text/font "Lives:" 15 "black" #f
+                                     'modern 'normal 'bold #f) BACKGROUND)
+              (draw-lives LIVES BACKGROUND))
+
+;;;; Signature
+;; current-lives : Life Image -> Image
+;; GIVEN: the number of lives and an image
+;; RETURNS: a new image that draws the number of lives on the givben image
+(define (current-lives l img)
+  (place-image (text/font (number->string l) 15 "black" #f 'modern
+                          'normal 'bold #f) 700 600 img))
+;;;; Tests
+(check-expect (current-lives 3 BACKGROUND)(current-lives 3 BACKGROUND))
+
+;;;; Signature
+;; draw-scoreboard : Scoreboard Image -> Image
+;;;; Purpose
+;; GIVEN: a scoreboard and an image
+;; RETURNS: a new image that draws the scoreboard on the given image
+(define (draw-scoreboard sb img)
+  (place-image SCOREBOARD-IMAGE
+               375 15 img))
+
+;;;; Tests
+(check-expect (draw-scoreboard (text/font "Score: " 24 "black" #f
+                              'modern 'normal 'bold #f) BACKGROUND)
+              (draw-scoreboard SCOREBOARD-IMAGE BACKGROUND))
+
+;;;; Signature
+;; draw-current-score : Scoreboard Image -> Image
+;;;; Purpose
+;; GIVEN: a scoreboard and an image
+;; RETURNS: a new image that draws the scoreboard on the given image
+(define (draw-current-score sb img)
+  (place-image (text/font (number->string sb) 24 "black" #f
+                                 'modern 'normal 'bold #f) 430 15 img))
+;;;; Tests
+(check-expect (draw-current-score 5 BACKGROUND)
+              (draw-current-score 5 BACKGROUND))
+
+;;;; Signature
+;; draw-mothership : Mothership Image -> Image
+;;;; Purpose
+;; GIVEN: a mothership and an image
+;; RETURNS: a new image that draws the mothership on the givein image
+(define (draw-mothership m img)
+  (place-image MOTHERSHIP-IMAGE
+               (posn-x (mothership-location m))
+               (posn-y (mothership-location m))
+               img))
+;;;; Tests
+(check-expect (draw-mothership
+               (make-mothership 'left (make-posn 500 500)) BACKGROUND)
+              (draw-mothership
+               (make-mothership 'left (make-posn 500 500)) BACKGROUND))
+(check-expect (draw-mothership
+               (make-mothership 'right (make-posn 150 50)) BACKGROUND)
+              (draw-mothership
+               (make-mothership 'right (make-posn 150 50)) BACKGROUND))
+
+;;;; Signature
+;; draw-spaceship : Spaceship Image -> Image
+;;;; Purpose
+;; GIVEN: a spaceship and an image
+;; RETURNS: a new image that draws the spaceship on the given image
+(define (draw-spaceship s img)
+  (place-image SPACESHIP-IMAGE
+               (posn-x (spaceship-location s))
+               (posn-y (spaceship-location s))
+               img))
+;;;; Tests
+(check-expect (draw-spaceship (make-spaceship 'left
+                                              (make-posn 50 50)) BACKGROUND)
+              (draw-spaceship (make-spaceship 'left
+                                              (make-posn 50 50)) BACKGROUND))
+(check-expect (draw-spaceship (make-spaceship 'right
+                                              (make-posn 50 50)) BACKGROUND)
+              (draw-spaceship (make-spaceship 'right
+                                              (make-posn 50 50)) BACKGROUND))
+
+;;;; Signature
+;; draw-invaders : LoI Image -> Image
+;;;; Purpose
+;; GIVEN: a list of invaders and an image
+;; RETURNS: a new image that draws the invaders on the given image
+(define (draw-invaders loi img)
+  (local
+    (
+     ;;;; Signature
+     ;; draw-invader : Invader Image -> Image;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;THIS ONE!
+     ;; GIVEN: an Invader
+     ;; RETURNS: an Invader drawn on the Image
+     (define (draw-invader invader img)
+       (place-image INVADER-IMAGE
+                    (posn-x invader)
+                    (posn-y invader)
+                    img)))
+    (foldr draw-invader img loi)))
+
+;;;; Tests
+#;(check-expect (draw-invaders
+               (list (make-posn 100 100)(make-posn 50 50)) BACKGROUND)
+              (draw-invaders
+               (list (make-posn 100 100)(make-posn 50 50)) BACKGROUND))
+
+
+;;;; Signature
+;; draw-invader-bullet : Posn Image -> Image
+;;;; Purpose
+;; GIVEN: an invader bullet and an image
+;; RETURNS: a new image that draws the bullet on the given image
+(define (draw-invader-bullet posn img)
+  (place-image BULLET-IMAGE-INVADER
+               (posn-x posn)
+               (posn-y posn)
+                img))
+;;;; Tests
+(check-expect (draw-invader-bullet (make-posn 50 50) BACKGROUND)
+              (draw-invader-bullet (make-posn 50 50) BACKGROUND))
+
+;;;; Signature
+;; draw-invader-bullets : LoIB Image -> Image
+;;;; Purpose
+;; GIVEN: a list of invader bullets and an image
+;; RETURNS: a new image that draws the list of invader bullets on the
+;;          given image
+(define (draw-invader-bullets loib img)
+  (cond
+    [(empty? loib) img]
+    [else (draw-invader-bullet (first loib)
+                             (draw-invader-bullets (rest loib) img))]))
+;;;; Tests
+(check-expect (draw-invader-bullets
+               (list (make-posn 50 50)(make-posn 60 60)) BACKGROUND)
+              (draw-invader-bullets
+               (list (make-posn 50 50)(make-posn 60 60)) BACKGROUND))
+
+;;;; Signature
+;; draw-spaceship-bullet : Posn Image -> Image
+;;;; Purpose
+;; GIVEN: a bullet and an image
+;; RETURNS: a new image that draws the bullet on the given image
+(define (draw-spaceship-bullet posn img)
+(place-image BULLET-IMAGE-SPACESHIP
+             (posn-x posn)
+             (posn-y posn) img))
+;;;; Tests
+(check-expect (draw-spaceship-bullet (make-posn 50 50) BACKGROUND)
+              (draw-spaceship-bullet (make-posn 50 50) BACKGROUND))
+
+;;;; Signature
+;; draw-space-bullets : LoSB Image -> Image
+;;;; Purpose
+;; GIVEN: a list of bullet and an image
+;; RETURNS: a new image that draws a list of bullets on the given image
+(define (draw-spaceship-bullets losb img)
+  (cond
+    [(empty? losb) img]
+    [else (draw-spaceship-bullet (first losb)
+                             (draw-spaceship-bullets (rest losb) img))]))
+;;;; Tests
+(check-expect (draw-spaceship-bullets
+               (list (make-posn 200 200)(make-posn 150 150)) BACKGROUND)
+              (draw-spaceship-bullets
+               (list (make-posn 200 200)(make-posn 150 150)) BACKGROUND))
+
+;;;; Signature
+;; fire-spaceship-bullets : World -> World
+;;;; Purpose
+;; GIVEN: a world
+;; RETURNS: a world with an updated list of bullets
+(define (fire-spaceship-bullets w)
+  (local
+    (
+     ;;;; Signature
+     ;; add-bullet : LoSB Spaceship -> LoSB
+     ;;;; Purpose
+     ;; GIVEN: a list of spacebullets
+     ;; RETURNS: a list of spacebullets with an added spacebullet
+     (define (add-bullet losb spaceship)
+       (cons (make-posn (posn-x (spaceship-location spaceship))
+                        (posn-y (spaceship-location spaceship))) losb)))
+    (cond
+      [(= MAX-SPACESHIP-BULLETS (length (world-losb w))) w]
+      [else (make-world (world-spaceship w)(world-invaders w)
+                        (add-bullet (world-losb w)(world-spaceship w))
+                        (world-loib w)(world-life w)(world-scoreboard w)
+                        (world-mothership w)(world-tick w))])))
+;;;; Tests
+(check-expect (fire-spaceship-bullets
+               (make-world  (make-spaceship 'left (make-posn 50 50))
+                            (list (make-posn 50 50)(make-posn 50 50))
+                            (list (make-posn 50 50)(make-posn 100 100))
+                            (list (make-posn 50 50)(make-posn 50 50))
+                            5 (make-scoreboard (make-posn 500 500) 20)
+                            (make-mothership 'left (make-posn 15 15))
+                            10))
+               (make-world  (make-spaceship 'left (make-posn 50 50))
+                            (list (make-posn 50 50)(make-posn 50 50))
+                            (list (make-posn 50 50)(make-posn 50 50)
+                                  (make-posn 100 100))
+                            (list (make-posn 50 50)(make-posn 50 50))
+                            5 (make-scoreboard (make-posn 500 500) 20)
+                            (make-mothership 'left (make-posn 15 15))
+                            10))
+
+;;;; Signature
+;; move-spaceship-bullets : LoSB -> LoSB
+;;;; Purpose
+;; GIVEN: a list of bullets
+;; RETURNS: an updated list of bullet after moving up by one unit
+(define (move-spaceship-bullets losb)
+  (local
+    (
+     ;;;; Signature
+     ;; move-spaceship-bullet : Posn -> Posn
+     ;;;; Purpose
+     ;; GIVEN: a bullet
+     ;; RETURNS: an updated list of that bullet after moving up by one unit
+     (define (move-spaceship-bullet posn)
+       (make-posn (posn-x posn)
+                  (- (posn-y posn) SPEED))))
+  (cond
+    [(empty? losb) losb]
+    [(> 0 (posn-y (first losb)))
+        (move-spaceship-bullets (rest losb))]
+    [else (cons (move-spaceship-bullet (first losb))
+                 (move-spaceship-bullets (rest losb)))])))
+
+;;> -1 this is a really good place to use map and filter
+
+;;> -1 black lines
+
+;;;; Tests
+(check-expect (move-spaceship-bullets (list (make-posn 50 50)))
+              (list (make-posn 50 (- 50 SPEED))))
+(check-expect (move-spaceship-bullets (list (make-posn 150 150)))
+              (list (make-posn 150 (- 150 SPEED))))
+(check-expect (move-spaceship-bullets (list (make-posn 250 250)))
+              (list (make-posn 250 (- 250 SPEED))))
+
+
+;;;; Signature
+;; fire-invader-bullets : World -> LoIB
+
+;;> Good job fixing this signature.
+
+;;;; Purpose
+;; GIVEN: a world
+;; RETURNS: an updated list of invader bullets
+(define (fire-invader-bullets w)
+  (local
+    (
+     ;;;; Signature
+     ;; random-invader : LoI -> Invader
+     ;;;; Purpose
+     ;; GIVEN: a list of invaders
+     ;; RETURNS: a randomly selected invader
+     (define (random-invader loi)
+       (local
+         (
+          ;;;; Signature
+          ;; local-list : LoIB Int -> LoIB
+          ;;> good job fixing this signature
+          ;;;; Purpose
+          ;; GIVEN: a list of invader bullets and an integer
+          ;; RETURNS: a list of invader bullets
+          (define (local-list loi index)
+            (cond
+              [(= index 0)(first loi)]
+              [else (local-list (rest loi) (- index 1))])))
+         (local-list loi (random (length loi))))))
+     (cond
+       [(< (length (world-loib w)) MAX-INVADER-BULLETS)
+        (cons (random-invader (world-invaders w)) (world-loib w))]
+       [else (world-loib w)])))
+
+;;;; Tests
+#;(check-random (fire-invader-bullets
+               (make-world (make-spaceship 'right (make-posn 650 650))
+                           (list (make-posn 300 50)(make-posn 350 50))
+                           (list (make-posn 600 600)(make-posn 650 650)) empty
+                           3 (make-scoreboard (make-posn 750 750) 100)
+                           (make-mothership 'left (make-posn 375 50)) 100))
+              (list (make-posn 300 50)))
+
+
+;;;; Signature
+;; after-10 : LoI Tick -> LoI
+;;;; Purpose
+;; GIVEN: a list of invaders and the current time
+;; RETURNS: an updated list of invaders that have moved down one after
+;;          10 clicks
+(define (after-10 loi t)
+  (cond
+    [(empty? loi) loi]
+    [(and (> t 1)(= (modulo t 10) 0))
+     (cons (make-posn (posn-x (first loi))(+ INVADER-SIDE (posn-y (first loi))))
+           (after-10 (rest loi) t))]
+    [else loi]))
+
+;;> -1 for the middle case, this function goes through a list, changing each
+;;> element in the list in the same way. This should be handled by map.
+
+;;;; Tests
+(check-expect (after-10
+               (list (make-posn 300 50)(make-posn 350 50)(make-posn 400 50)) 10)
+              (list (make-posn 300 70)(make-posn 350 70)(make-posn 400 70)))
+(check-expect (after-10
+               (list (make-posn 300 50)(make-posn 350 50)(make-posn 400 50)) 5)
+              (list (make-posn 300 50)(make-posn 350 50)(make-posn 400 50)))
+  
+;;;; Signature
+;; move-invader-bullets : LoIB -> LoIB
+;;;; Purpose
+;; GIVEN: a list of invader bullets
+;; RETURNS: an updated list of bullets after moving down by one unit
+(define (move-invader-bullets loib)
+  (local
+    (
+     ;;;; Signature
+     ;; move-invader-bullet : Posn -> Posn
+     ;;;; Purpose
+     ;; GIVEN: a bullet
+     ;; RETURNS: an updated list of that bullet after moving down by one unit
+     (define (move-invader-bullet posn)
+       (make-posn (posn-x posn)
+                  (+ (posn-y posn) SPEED))))
+     (cond
+       [(empty? loib) loib]
+       [(< HEIGHT (posn-y (first loib)))
+        (move-invader-bullets (rest loib))]
+       [else (cons (move-invader-bullet (first loib))
+                   (move-invader-bullets (rest loib)))])))
+
+;;> -1 black lines
+
+;;> -1 good place to use map and filter
+
+;;> but nice use of local
+
+;;;; Tests
+(check-expect (move-invader-bullets (list (make-posn 50 50)))
+              (list (make-posn 50 (+ 50 SPEED))))
+;;;; Tests
+(check-expect (move-invader-bullets (list (make-posn 150 150)))
+              (list (make-posn 150 (+ 150 SPEED))))
+;;;; Tests
+(check-expect (move-invader-bullets (list (make-posn 250 250)))
+              (list (make-posn 250 (+ 250 SPEED))))
+
+;;;; Signature 
+;; move-spaceship : Spaceship -> Spaceship
+;;;; Purpose  
+;; GIVEN: a spaceship
+;; RETURNS: the spaceship after it moves by one unit distance in the
+;;          correct direction 
+(define (move-spaceship s)
+  (local
+    (
+     ;;;; Signature
+     ;; change-direction : Spaceship -> Spaceship
+     ;;;; Purpose
+     ;; GIVEN: a spaceship
+     ;; RETURNS: the spaceship going in the opposite direction
+     (define (change-direction s)
+       (cond
+         [(> 10 (posn-x (spaceship-location s)))
+          (make-spaceship 'right (move-spaceship-location
+                                  'right (spaceship-location s)))]
+         [(> (posn-x (spaceship-location s)) WIDTH)
+          (make-spaceship 'left (move-spaceship-location
+                                 'left (spaceship-location s)))]))
+     ;;;; Signature
+     ;; move-spaceship-location : Direction Location -> Location
+     ;;;; Purpose
+     ;; GIVEN: a direction and a location
+     ;; RETURNS: a new location in the direction given
+     (define (move-spaceship-location dir location)
+       (cond
+         [(symbol=? 'left dir)
+          (make-posn (- (posn-x location) SPACESHIP-SIDE)(posn-y location))]
+         [(symbol=? 'right dir) (make-posn (+ (posn-x location) SPACESHIP-SIDE)
+                   (posn-y location))])))
+     (cond
+      [(out-of-bounds? s) (change-direction s)]
+      [else (make-spaceship (spaceship-dir s)
+                            (move-spaceship-location
+                             (spaceship-dir s) (spaceship-location s)))])))
+
+;;> s is not a good input name
+
+;;> -1 black lines
+
+;;;; Tests
+(check-expect (move-spaceship (make-spaceship 'left (make-posn 100 100)))
+              (make-spaceship 'left (make-posn 80 100)))
+(check-expect (move-spaceship (make-spaceship 'left (make-posn 150 150)))
+              (make-spaceship 'left (make-posn 130 150)))
+(check-expect (move-spaceship (make-spaceship 'left (make-posn 200 200)))
+              (make-spaceship 'left (make-posn 180 200)))
+
+;;;; Signature 
+;; out-of-bounds? : Spaceship -> Boolean
+;;;; Purpose
+;; GIVEN: a spaceship 
+;; RETURNS: true if the spaceship has gone out of bounds,
+;;          false otherwise 
+(define (out-of-bounds? s)
+  (local
+    (
+     ;;;; Signature
+     ;; posn-out-of-bounds : Posn -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: a posn
+     ;; RETURNS: true if the posn is out of bounds, false otherwise
+     (define (posn-out-of-bounds p)
+       (or (<  (posn-x p) 0)
+           (>= (posn-x p) WIDTH)
+           (<  (posn-y p) 0)
+           (>= (posn-y p) HEIGHT))))
+     (posn-out-of-bounds (spaceship-location s))))
+
+;;;; Tests
+(check-expect (out-of-bounds? (make-spaceship 'left (make-posn 50 50))) #false)
+(check-expect (out-of-bounds? (make-spaceship 'left (make-posn -10 50))) #true)
+(check-expect (out-of-bounds? (make-spaceship 'right (make-posn 30 90))) #false)
+(check-expect (out-of-bounds? (make-spaceship 'right (make-posn 760 50))) #true)
+
+;;> s and p are not good input names
+
+;;;; Signature 
+;; move-mothership : Mothership -> Mothership
+;;;; Purpose  
+;; GIVEN: a mothership
+;; RETURNS: the mothership after it moves by one unit distance in the
+;;          correct direction 
+(define (move-mothership m)
+  (local
+    (
+     ;;;; Signature
+     ;; move-mothership-location : Direction Location -> Location
+     ;;;; Purpose
+     ;; GIVEN: a direction and a location
+     ;; RETURNS: a new location in the direction given
+     (define (move-mothership-location dir location)
+       (cond
+         [(symbol=? 'left dir)(make-posn (- (posn-x location) SPEED)
+                   (posn-y location))]
+         [(symbol=? 'right dir) (make-posn (+ (posn-x location) SPEED)
+                   (posn-y location))])))
+    (make-mothership (mothership-dir m)
+                     (move-mothership-location
+                      (mothership-dir m)(mothership-location m)))))
+
+;;> m is not a good input name
+
+
+;;> -4 mothership should move from left to right, instead of from right to left
+;;> -2 mothership doesn't disappear after getting hit
+
+;;;; Tests
+(check-expect (move-mothership (make-mothership 'right (make-posn 50 50)))
+              (make-mothership 'right (make-posn 75 50)))
+(check-expect (move-mothership (make-mothership 'left (make-posn 50 50)))
+              (make-mothership 'left (make-posn 25 50)))
+
+;;;; Signature
+;; after-30 : Mothership Tick -> Mothership
+;;;; Purpose
+;; GIVEN: a mothership and a tick value
+;; RETURNS: A mothership moving in a direction after 30 ticks
+(define (after-30 m t)
+  (cond
+    [(and (> t 1)(= (modulo t 30) 0))
+     (make-mothership 'left (make-posn 700 50))]
+    [else m]))
+
+;;> m and t are not good input names
+
+;;;; Tests
+(check-expect (after-30 (make-mothership 'left (make-posn 50 50)) 10)
+              (make-mothership 'left (make-posn 50 50)))
+(check-expect (after-30 (make-mothership 'left (make-posn 50 50)) 30)
+              (make-mothership 'left (make-posn 700 50)))
+(check-expect (after-30 (make-mothership 'right (make-posn 50 50)) 10)
+              (make-mothership 'right (make-posn 50 50)))
+(check-expect (after-30 (make-mothership 'right (make-posn 50 50)) 30)
+              (make-mothership 'left (make-posn 700 50)))
+
+
+;;;; Signature
+;; update-score : LoI LoSB Life Scoreboard Mothership -> Scoreboard
+;;;; Purpose
+;; GIVEN: a list of invaders, a list of space bullets, and a scoreboard
+;; RETURNS: an updated scoreboard with the appropriate score displayed
+;; WHERE:  an invader is 5 points
+;;         a mothership is 20 points
+(define (update-score invaders losb life sb m )
+  (cond
+    [(empty? invaders) sb]
+    [(hit? (first invaders) losb)(+ 5 sb)]
+    [(mothership-hit? losb m)(+ 20 sb)]
+    [else (update-score (rest invaders) losb life sb m)]))
+
+;;> 5 and 20 should be constants.
+
+;;;; Tests
+(check-expect (update-score
+               (list (make-posn 50 50)(make-posn 100 50))
+               (list (make-posn 300 300)(make-posn 350 300)(make-posn 400 300))
+               3 (make-scoreboard (make-posn 50 50) 100)
+               (make-mothership 'left (make-posn 375 50)))
+              (make-scoreboard (make-posn 50 50) 100))
+(check-expect (update-score
+               (list (make-posn 50 50)(make-posn 100 50))
+               (list (make-posn 50 50)(make-posn 350 300)(make-posn 400 300))
+               3 100 (make-mothership 'left (make-posn 375 50))) 105)
+(check-expect (update-score
+               (list (make-posn 50 50)(make-posn 100 50))
+               (list (make-posn 375 50)(make-posn 350 300)(make-posn 400 300))
+               3 100 (make-mothership 'left (make-posn 375 50))) 120)
+
+;;;; Signature
+;; mothership-hit? : Mothership LoSB -> Boolean
+
+;;> the list is the second input in the signature but the first input in
+;;> the function definition
+;;> consistency is important
+
+;;;; Purpose
+;; GIVEN: a mothership location and a list of space bullet locations
+;; RETURNS: true if the space bullet location matches the mothership location
+(define (mothership-hit? losb m)
+  (local
+    (
+     ;;;; Signature
+     ;; mothership-hit-confirm? : Mothership SpaceBullet -> Boolean
+
+     ;;> looks like the inputs in the signature vs the inputs in the function
+     ;;> definition are in different orders
+     
+     ;;;; Purpose
+     ;; GIVEN: a mothership location and a single bullet location
+     ;; RETURNS: true if the single bullet matches the mothership location
+     (define (mothership-hit-confirm? space-bullet m)
+       (and (range? (posn-x space-bullet)
+                    (- (posn-x (mothership-location m)) HIT-SIDE)
+                    (+ (posn-x (mothership-location m)) HIT-SIDE))
+            (range? (posn-y space-bullet)
+                    (- (posn-y (mothership-location m)) HIT-SIDE)
+                    (+ (posn-y (mothership-location m)) HIT-SIDE)))))
+    (cond
+      [(empty? losb) #false]
+      [(mothership-hit-confirm? (first losb) m) #true]
+      [else (mothership-hit? (rest losb) m)])))
+
+;;> -1 this function is basically seeing if mothership-hit-confirm? is true for
+;;> any elements in a list. This should be handled by a higher order function:
+;;> ormap.
+
+;;;; Tests
+(check-expect (mothership-hit? (list (make-posn 50 50) (make-posn 60 50))
+                               (make-mothership 'left (make-posn 100 100)))
+              #false)
+(check-expect (mothership-hit? (list (make-posn 50 50) (make-posn 60 50))
+                               (make-mothership 'left (make-posn 50 50)))
+              #true)
+
+;;;; Signature
+;; hit? : Invader LoSB -> Boolean
+;;;; Purpose
+;; GIVEN: an invader location and space bullet locations
+;; RETURNS: true if the invader position and bullet position match
+(define (hit? invader losb)
+  (local
+    (
+     ;;;; Signature
+     ;; hit-confirm? : Invader SpaceBullet -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: an invader location and a single bullet location
+     ;; RETURNS: true if the single bullet matches an invader location
+     
+     (define (hit-confirm? invader space-bullet)
+       (and (range? (posn-x space-bullet)
+                    (- (posn-x invader) HIT-SIDE)
+                    (+ (posn-x invader) HIT-SIDE))
+            (range? (posn-y space-bullet)(- (posn-y invader) HIT-SIDE)
+                    (+ (posn-y invader) HIT-SIDE)))))
+    (cond
+      [(empty? losb) #false]
+      [(hit-confirm? invader (first losb)) #true]
+      [else (hit? invader (rest losb))])))
+
+;;> good job gettin rid of the unnecessary cond and magic numbers here.
+;;> -1 however this would be a great place to use an ormap...
+
+;;;; Tests
+(check-expect (hit? (make-posn 50 50)
+                    (list (make-posn 100 100)(make-posn 50 50))) #true)
+(check-expect (hit? (make-posn 50 50)
+                    (list (make-posn 20 20)(make-posn 100 100))) #false)
+
+;;;; Signature 
+;; remove-invader-hits : LoI LoSB -> LoI
+;;;; Purpose
+;; GIVEN: a list of invaders and a list of space bullets
+;; RETURNS: an updated list of invaders if any were hit by
+;;          space bullets
+
+(define (remove-invader-hits invaders losb)
+  (cond
+    [(empty? invaders) invaders]
+    [(hit? (first invaders) losb)(remove-invader-hits (rest invaders) losb)]
+    [else (cons (first invaders)
+                (remove-invader-hits (rest invaders) losb))]))
+
+;;> -1 this would be a good place to use filter, e.g.
+
+#;(define (remove-invader-hits invaders losb)
+  (filter (lambda (x) (not (hit? x losb))) invaders))
+
+;;> or if you don't want to use lambda:
+
+#;(define (remove-invader-hits invaders losb)
+  (local (
+          (define (remove-invader-hits-helper element)
+            (not (hit? element losb))))
+    (filter remove-invader-hits-helper invaders)))
+
+
+;;;; Tests
+(check-expect (remove-invader-hits
+               (list (make-posn 50 50)(make-posn 200 200))
+               (list (make-posn 50 50)(make-posn 100 100)))
+              (list (make-posn 200 200)))
+
+;;;; Signature
+;; remove-spacebullet-hits : LoI LoSB -> LoSB
+
+;;> order of inputs in signature vs in function definition
+
+;;;; Purpose
+;; GIVEN: a lsit of invaders and a list of space bullets
+;; RETURNS: an updated list of space bullets if any of them hit
+;;          an invader
+
+(define (remove-spacebullet-hits losb invaders)
+  (cond
+    [(empty? losb) losb]
+    [(hit? (first losb) invaders)(remove-spacebullet-hits (rest losb) invaders)]
+    [else (cons (first losb)
+                (remove-spacebullet-hits (rest losb) invaders))]))
+
+;;> -1 this would also be a good place to use a filter
+
+;;;; Tests
+(check-expect (remove-spacebullet-hits
+               (list (make-posn 50 50) (make-posn 75 75)(make-posn 100 100))
+               (list (make-posn 50 50) (make-posn 200 200)(make-posn 300 300)))
+              (list (make-posn 75 75)(make-posn 100 100)))
+
+
+;;;; Signature
+;; end-game? : World -> Boolean
+;;;; Purpose
+;; GIVEN: the current world
+;; RETURNS: true if one of the conditions that end the game has been met,
+;;          false otherwise
+(define (end-game? w)
+  (local
+    (
+     ;;;; Signature
+     ;; no-invaders? : LoI -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: a list of invaders
+     ;; RETURNS: true if all of the invaders have been removed, false otherwise
+     (define (no-invaders? loi)
+       (empty? loi))
+
+     ;;> nice job
+
+     ;;;; Signature
+     ;; invader-bottom? : LoI -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: a list of invaders
+     ;; RETURNS: true if an invader location matches the bottom, false otherwise
+     (define (invader-bottom? loi)
+       (cond
+         [(empty? loi) #false]
+         [(= (posn-y (first loi)) 600) #true]
+         [else (invader-bottom? (rest loi))]))
+
+     ;;> -1 magic number. What is 600? How did you get to it? What if you want
+     ;;> to alter game dimensions? Use constants! See the style guide for
+     ;;> more details.
+     ;;> -1 invader-bottom? goes through the elements in a list, checking to
+     ;;> see if any meet a certain condition. This should be handled by
+     ;;> an ormap.
+     ;;> -1 600 is also unfortunately not the right number... The spaceship is
+     ;;> always at a y position of 700 (from SPACESHIP-INIT). The spaceship's
+     ;;> height is 20 (from SPACESHIP-SIDE). So the spaceship extends up to 690.
+     ;;> An invader's height is 20 (from INVADER-SIDE). We want to end the
+     ;;> game when the bottom of the invader is at the same height as or below
+     ;;> the top of the spaceship (which from above is at y position 690). The
+     ;;> bottom of the spaceship will be at 690 when it's y position is half its
+     ;;> height above 690, so at 690 - 10 = 680. If this doesn't make sense
+     ;;> right away, try drawing it out.
+     ;;> In addition, using '=' is a little too strict. This will only work
+     ;;> if the distance between the invader's starting y position and the
+     ;;> spaceship's y position is exactly divisible by the invader's height.
+     ;;> Otherwise the invaders could go past the spaceship without the game
+     ;;> ending. Can you think of a way to fix this? Hint: only one character
+     ;;> needs to change.
+     
+     ;;;; Signature
+     ;; no-lives? : LoL -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: a list of spaceship lives
+     ;; RETURNS: true if the list is empty, false otherwise
+
+     ;;> -1, this function checks if the input is 0, so the input cannot be
+     ;;> a list, so the signature and purpose are incorrect.
+     
+     (define (no-lives? life)
+       (= 0 life)))
+    (or (no-invaders? (world-invaders w))
+        (no-lives? (world-life w))
+        (invader-bottom? (world-invaders w)))))
+
+;;;; Tests
+(check-expect (end-game?
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 50)(make-posn 400 40))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50)) #false)
+(check-expect (end-game?
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 50)(make-posn 400 40))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 0
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50)) #true)
+(check-expect (end-game?
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           empty
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50)) #true)
+(check-expect (end-game?
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 600)(make-posn 400 600))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50)) #true)
+
+
+;;;; Signature
+;; remove-life : Spaceship LoSB LoIB Mothership Life -> Life
+;;;; Purpose
+;; GIVEN: A spaceship, a list of invader bullets, and a list of spaceship lives
+;; RETURNS: an updated list of spaceship lives where one has been removed
+(define (remove-life s losb loib m life)
+  (cond
+    [(empty? life) life]
+    [(mothership-hit? losb m)(+ 1 life)]
+    [(spaceship-hit? s loib)(- life 1)]
+    [else life]))
+
+;;> -5 spaceship does not reappear in the center after getting hit
+
+;;> seeing as this function can also add 1 to the lives count, remove-life is
+;;> probably not the best name.
+
+;;;; Tests
+(check-expect (remove-life
+               (make-spaceship 'left (make-posn 50 50))
+               (list (make-posn 50 100)(make-posn 50 200))
+               (list (make-posn 700 50)(make-posn 700 100))
+               (make-mothership 'left (make-posn 50 100)) 3) 4)
+(check-expect (remove-life
+               (make-spaceship 'left (make-posn 50 50))
+               (list (make-posn 50 100)(make-posn 50 200))
+               (list (make-posn 50 50)(make-posn 700 100))
+               (make-mothership 'left (make-posn 375 50)) 3) 2)
+
+
+;;;; Signature
+;; spaceship-hit? : Spaceship LoIB-> Boolean
+;;;; Purpose
+;; GIVEN: a spaceship and a list of invader bullets
+;; RETURNS: true if the spaceship's location and a list of invader bullets
+;;          location match, false otherwise
+(define (spaceship-hit? s loib)
+  (local
+    (
+     ;;;; Signature
+     ;; spaceship-hit-confirm? : Posn Spaceship -> Boolean
+     ;;;; Purpose
+     ;; GIVEN: the location of of the spaceship and a single invader bullet
+     ;; RETURNS: true if the spaceship-location and the invader bullet location
+     ;;          match, false otherwise
+     (define (spaceship-hit-confirm? p spaceship)
+       (and (range? (posn-x p) (- (posn-x (spaceship-location spaceship))
+                                  SPACESHIP-SIDE)
+                    (+ (posn-x (spaceship-location spaceship)) SPACESHIP-SIDE))
+            (range? (posn-y p) (- (posn-y (spaceship-location spaceship))
+                                  SPACESHIP-SIDE)
+                    (+ (posn-y (spaceship-location spaceship))
+                       SPACESHIP-SIDE)))))
+    (cond
+      [(empty? loib) #false]
+      [(spaceship-hit-confirm? (first loib) s) #true]
+      [else (spaceship-hit? s (rest loib))])))
+
+;;> -1 An ormap fits this function pretty well
+
+;;;; Tests
+(check-expect (spaceship-hit?
+               (make-spaceship 'left (make-posn 50 50))
+               (list (make-posn 100 100)(make-posn 150 150))) #false)
+(check-expect (spaceship-hit?
+               (make-spaceship 'left (make-posn 50 50))
+               (list (make-posn 50 50)(make-posn 150 150))) #true)
+
+;;;; Signature
+;; range? : Int Int Int -> Boolean
+;;;; Purpose
+;; GIVEN: the position of the spacebullet, the location the invader, and the
+;;        location of the invader
+;; RETURNS: true if the number is within range, false otherwise
+
+;;> better, but true if which of the three numbers is between the other two?
+
+(define (range? number low high)
+  (and (> number low)(< number high)))
+
+;;> good job removing the unnecessary cond
+
+;;;; Tests
+(check-expect (range? 5 0 10) #true)
+(check-expect (range? 0 100 500) #false)
+(check-expect (range? 50 60 70) #false)
+(check-expect (range? 100 100 500) #false)
+
+;;;; Signature 
+;; key-handler : World Key-Event -> World
+;;;; Purpose
+;; GIVEN: the current world and a key event
+;; RETURNS: a new world with one of the following:
+;;          1:  direction of the spaceship updated to the key event
+;;          2:  a bullet fired from the spaceships location going up
+(define (key-handler w ke)
+  (cond 
+    [(or (key=? ke "left")
+         (key=? ke "right"))
+     (make-world (make-spaceship (string->symbol ke)
+                                 (spaceship-location (world-spaceship w)))
+                 (world-invaders w)(world-losb w)
+                 (world-loib w)(world-life w)(world-scoreboard w)
+                 (world-mothership w)(world-tick w))]
+    [(key=? ke " ")(fire-spaceship-bullets w)]
+    [else w]))
+
+;;;; Tests
+(check-expect (key-handler
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 50)(make-posn 400 40))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50) "left")
+              (make-world (make-spaceship 'left (make-posn 100 100))
+                          (list (make-posn 300 50)(make-posn 400 40))
+                          (list (make-posn 100 150)(make-posn 100 200))
+                          (list (make-posn 20 20)(make-posn 30 30)) 3
+                          (make-scoreboard (make-posn 700 700) 0)
+                          (make-mothership 'left (make-posn 100 50)) 50))
+(check-expect (key-handler
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 50)(make-posn 400 40))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left
+                                            (make-posn 100 50)) 50) "right")
+              (make-world (make-spaceship 'right (make-posn 100 100))
+                          (list (make-posn 300 50)(make-posn 400 40))
+                          (list (make-posn 100 150)(make-posn 100 200))
+                          (list (make-posn 20 20)(make-posn 30 30)) 3
+                          (make-scoreboard (make-posn 700 700) 0)
+                          (make-mothership 'left (make-posn 100 50)) 50))
+(check-expect (key-handler
+               (make-world (make-spaceship 'left (make-posn 100 100))
+                           (list (make-posn 300 50)(make-posn 400 40))
+                           (list (make-posn 100 150)(make-posn 100 200))
+                           (list (make-posn 20 20)(make-posn 30 30)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left (make-posn 100 50)) 50) " ")
+              (make-world (make-spaceship 'left (make-posn 100 100))
+                          (list (make-posn 300 50)(make-posn 400 40))
+                          (list (make-posn 100 100) (make-posn 100 150)
+                                (make-posn 100 200))
+                          (list (make-posn 20 20)(make-posn 30 30)) 3
+                          (make-scoreboard (make-posn 700 700) 0)
+                          (make-mothership 'left (make-posn 100 50)) 50))
+              
+;;;; Signature
+;; tick-counter : World -> NonNegInteger
+;;;; Purpose
+;; GIVEN: the current world
+;; RETURNS: a non negative integer that represents the total amount
+;;          of tics
+(define (tick-counter t)
+  (add1 t))
+
+;;;; Tests
+(check-expect (tick-counter 100) 101)
+(check-expect (tick-counter 0) 1)
+
+;;;; Signature
+;; world-step : World -> World
+;;;; Purpose
+;; GIVEN: the current world
+;; RETURNS: the next world after one clock tick
+(define (world-step w)
+  (make-world (move-spaceship (world-spaceship w))
+              (after-10
+               (remove-invader-hits
+                (world-invaders w)(world-losb w))(world-tick w))
+              (move-spaceship-bullets
+               (remove-spacebullet-hits (world-losb w)(world-invaders w)))
+              (move-invader-bullets (fire-invader-bullets w))
+              (remove-life (world-spaceship w)(world-losb w)(world-loib w)
+                           (world-mothership w)(world-life w))
+              (update-score (world-invaders w)(world-losb w)(world-life w)
+                            (world-scoreboard w)(world-mothership w))
+              (after-30 (move-mothership (world-mothership w))(world-tick w))
+              (tick-counter (world-tick w))))
+
+;;;; Tests
+(check-expect (world-step
+               (make-world (make-spaceship 'left (make-posn 80 100))
+                           (list (make-posn 300 70)(make-posn 400 60))
+                           (list (make-posn 100 125)(make-posn 100 175))
+                           (list (make-posn 300 75)(make-posn 20 45)
+                                 (make-posn 30 55)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left (make-posn 75 50)) 50))
+              (make-world (make-spaceship 'left (make-posn 60 100))
+                           (list (make-posn 300 90)(make-posn 400 80))
+                           (list (make-posn 100 100)(make-posn 100 150))
+                           (list (make-posn 300 95)(make-posn 300 100)
+                                 (make-posn 20 70)(make-posn 30 80)) 3
+                           (make-scoreboard (make-posn 700 700) 0)
+                           (make-mothership 'left (make-posn 50 50)) 51))
+
+;;> There should be more than one test for this.
+
+
+(big-bang WORLD-INIT
+          (to-draw draw-world)
+          (on-tick world-step .2)
+          (on-key key-handler)
+          (stop-when end-game?))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
