@@ -6,20 +6,6 @@
 (require 2htdp/image)
 (require 2htdp/universe)
 
-;;> Total: 142/170
-
-;;> General comment: good job getting the ship to stop sticking to the edge,
-;;> but now the ship bounces off the side when it should remain at
-;;> the edge if it reaches it until the user moves it in the other direction
-
-;;> A few of the functions below have single-letter names for inputs. This is
-;;> not very informative. See the style guide for more details.
-;;> -1 Part of this assignment was fixing things that were commented on for
-;;> assignment 6. In assignment 6, the fact that 's' is not a great input
-;;> name was commented on, but 's' reappears here! As do other single-letter
-;;> names...
-
-
 ;; A Direction is one of
 ;; - LEFT
 ;; - RIGHT
@@ -113,8 +99,6 @@
     ... (posn-x invader-bullet) ...
     ... (posn-y invader-bullet) ... )
 
-;;> Good job defining Space Bullet and Invader Bullet, but try to keep it
-;;> one word (e.g. SpaceBullet, InvaderBullet)
 
 ;; A ListOfInvaderBullets (LoIB) is one of
 ;; - empty
@@ -183,12 +167,12 @@
 (define INVADER-SIDE 20) ;; invader side in pixels
 (define MOTHERSHIP-SIDE 20) ;; mothership side in pixels
 (define HIT-SIDE 15) ;; distance, in pixels, for a hit
-(define MAX-SPACESHIP-BULLETS 3)
-(define MAX-INVADER-BULLETS 10)
+(define MAX-SPACESHIP-BULLETS 3) ;; maximum amount of spaceship bullets
+(define MAX-INVADER-BULLETS 10) ;; maximum amount of invader bullets
 
 (define SPEED 40) ;; speed of the bullets
 
-(define BACKGROUND (empty-scene WIDTH HEIGHT))
+(define BACKGROUND (empty-scene WIDTH HEIGHT)) ;; initial background on start
 
 (define BULLET-IMAGE-SPACESHIP (square BULLET-SIDE 'solid 'black))
 (define BULLET-IMAGE-INVADER (square BULLET-SIDE 'solid 'red))
@@ -352,7 +336,7 @@
   (local
     (
      ;;;; Signature
-     ;; draw-invader : Invader Image -> Image;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;THIS ONE!
+     ;; draw-invader : Invader Image -> Image
      ;; GIVEN: an Invader
      ;; RETURNS: an Invader drawn on the Image
      (define (draw-invader invader img)
@@ -492,9 +476,6 @@
     [else (cons (move-spaceship-bullet (first losb))
                  (move-spaceship-bullets (rest losb)))])))
 
-;;> -1 this is a really good place to use map and filter
-
-;;> -1 black lines
 
 ;;;; Tests
 (check-expect (move-spaceship-bullets (list (make-posn 50 50)))
@@ -507,9 +488,6 @@
 
 ;;;; Signature
 ;; fire-invader-bullets : World -> LoIB
-
-;;> Good job fixing this signature.
-
 ;;;; Purpose
 ;; GIVEN: a world
 ;; RETURNS: an updated list of invader bullets
@@ -564,9 +542,6 @@
            (after-10 (rest loi) t))]
     [else loi]))
 
-;;> -1 for the middle case, this function goes through a list, changing each
-;;> element in the list in the same way. This should be handled by map.
-
 ;;;; Tests
 (check-expect (after-10
                (list (make-posn 300 50)(make-posn 350 50)(make-posn 400 50)) 10)
@@ -597,12 +572,6 @@
         (move-invader-bullets (rest loib))]
        [else (cons (move-invader-bullet (first loib))
                    (move-invader-bullets (rest loib)))])))
-
-;;> -1 black lines
-
-;;> -1 good place to use map and filter
-
-;;> but nice use of local
 
 ;;;; Tests
 (check-expect (move-invader-bullets (list (make-posn 50 50)))
@@ -653,10 +622,6 @@
                             (move-spaceship-location
                              (spaceship-dir s) (spaceship-location s)))])))
 
-;;> s is not a good input name
-
-;;> -1 black lines
-
 ;;;; Tests
 (check-expect (move-spaceship (make-spaceship 'left (make-posn 100 100)))
               (make-spaceship 'left (make-posn 80 100)))
@@ -692,8 +657,6 @@
 (check-expect (out-of-bounds? (make-spaceship 'right (make-posn 30 90))) #false)
 (check-expect (out-of-bounds? (make-spaceship 'right (make-posn 760 50))) #true)
 
-;;> s and p are not good input names
-
 ;;;; Signature 
 ;; move-mothership : Mothership -> Mothership
 ;;;; Purpose  
@@ -718,12 +681,6 @@
                      (move-mothership-location
                       (mothership-dir m)(mothership-location m)))))
 
-;;> m is not a good input name
-
-
-;;> -4 mothership should move from left to right, instead of from right to left
-;;> -2 mothership doesn't disappear after getting hit
-
 ;;;; Tests
 (check-expect (move-mothership (make-mothership 'right (make-posn 50 50)))
               (make-mothership 'right (make-posn 75 50)))
@@ -740,8 +697,6 @@
     [(and (> t 1)(= (modulo t 30) 0))
      (make-mothership 'left (make-posn 700 50))]
     [else m]))
-
-;;> m and t are not good input names
 
 ;;;; Tests
 (check-expect (after-30 (make-mothership 'left (make-posn 50 50)) 10)
@@ -767,8 +722,6 @@
     [(hit? (first invaders) losb)(+ 5 sb)]
     [(mothership-hit? losb m)(+ 20 sb)]
     [else (update-score (rest invaders) losb life sb m)]))
-
-;;> 5 and 20 should be constants.
 
 ;;;; Tests
 (check-expect (update-score
@@ -820,10 +773,6 @@
       [(mothership-hit-confirm? (first losb) m) #true]
       [else (mothership-hit? (rest losb) m)])))
 
-;;> -1 this function is basically seeing if mothership-hit-confirm? is true for
-;;> any elements in a list. This should be handled by a higher order function:
-;;> ormap.
-
 ;;;; Tests
 (check-expect (mothership-hit? (list (make-posn 50 50) (make-posn 60 50))
                                (make-mothership 'left (make-posn 100 100)))
@@ -857,9 +806,6 @@
       [(hit-confirm? invader (first losb)) #true]
       [else (hit? invader (rest losb))])))
 
-;;> good job gettin rid of the unnecessary cond and magic numbers here.
-;;> -1 however this would be a great place to use an ormap...
-
 ;;;; Tests
 (check-expect (hit? (make-posn 50 50)
                     (list (make-posn 100 100)(make-posn 50 50))) #true)
@@ -880,20 +826,6 @@
     [else (cons (first invaders)
                 (remove-invader-hits (rest invaders) losb))]))
 
-;;> -1 this would be a good place to use filter, e.g.
-
-#;(define (remove-invader-hits invaders losb)
-  (filter (lambda (x) (not (hit? x losb))) invaders))
-
-;;> or if you don't want to use lambda:
-
-#;(define (remove-invader-hits invaders losb)
-  (local (
-          (define (remove-invader-hits-helper element)
-            (not (hit? element losb))))
-    (filter remove-invader-hits-helper invaders)))
-
-
 ;;;; Tests
 (check-expect (remove-invader-hits
                (list (make-posn 50 50)(make-posn 200 200))
@@ -902,9 +834,6 @@
 
 ;;;; Signature
 ;; remove-spacebullet-hits : LoI LoSB -> LoSB
-
-;;> order of inputs in signature vs in function definition
-
 ;;;; Purpose
 ;; GIVEN: a lsit of invaders and a list of space bullets
 ;; RETURNS: an updated list of space bullets if any of them hit
@@ -916,8 +845,6 @@
     [(hit? (first losb) invaders)(remove-spacebullet-hits (rest losb) invaders)]
     [else (cons (first losb)
                 (remove-spacebullet-hits (rest losb) invaders))]))
-
-;;> -1 this would also be a good place to use a filter
 
 ;;;; Tests
 (check-expect (remove-spacebullet-hits
@@ -942,9 +869,6 @@
      ;; RETURNS: true if all of the invaders have been removed, false otherwise
      (define (no-invaders? loi)
        (empty? loi))
-
-     ;;> nice job
-
      ;;;; Signature
      ;; invader-bottom? : LoI -> Boolean
      ;;;; Purpose
@@ -954,39 +878,12 @@
        (cond
          [(empty? loi) #false]
          [(= (posn-y (first loi)) 600) #true]
-         [else (invader-bottom? (rest loi))]))
-
-     ;;> -1 magic number. What is 600? How did you get to it? What if you want
-     ;;> to alter game dimensions? Use constants! See the style guide for
-     ;;> more details.
-     ;;> -1 invader-bottom? goes through the elements in a list, checking to
-     ;;> see if any meet a certain condition. This should be handled by
-     ;;> an ormap.
-     ;;> -1 600 is also unfortunately not the right number... The spaceship is
-     ;;> always at a y position of 700 (from SPACESHIP-INIT). The spaceship's
-     ;;> height is 20 (from SPACESHIP-SIDE). So the spaceship extends up to 690.
-     ;;> An invader's height is 20 (from INVADER-SIDE). We want to end the
-     ;;> game when the bottom of the invader is at the same height as or below
-     ;;> the top of the spaceship (which from above is at y position 690). The
-     ;;> bottom of the spaceship will be at 690 when it's y position is half its
-     ;;> height above 690, so at 690 - 10 = 680. If this doesn't make sense
-     ;;> right away, try drawing it out.
-     ;;> In addition, using '=' is a little too strict. This will only work
-     ;;> if the distance between the invader's starting y position and the
-     ;;> spaceship's y position is exactly divisible by the invader's height.
-     ;;> Otherwise the invaders could go past the spaceship without the game
-     ;;> ending. Can you think of a way to fix this? Hint: only one character
-     ;;> needs to change.
-     
+         [else (invader-bottom? (rest loi))]))     
      ;;;; Signature
      ;; no-lives? : LoL -> Boolean
      ;;;; Purpose
      ;; GIVEN: a list of spaceship lives
      ;; RETURNS: true if the list is empty, false otherwise
-
-     ;;> -1, this function checks if the input is 0, so the input cannot be
-     ;;> a list, so the signature and purpose are incorrect.
-     
      (define (no-lives? life)
        (= 0 life)))
     (or (no-invaders? (world-invaders w))
@@ -1040,11 +937,6 @@
     [(spaceship-hit? s loib)(- life 1)]
     [else life]))
 
-;;> -5 spaceship does not reappear in the center after getting hit
-
-;;> seeing as this function can also add 1 to the lives count, remove-life is
-;;> probably not the best name.
-
 ;;;; Tests
 (check-expect (remove-life
                (make-spaceship 'left (make-posn 50 50))
@@ -1086,8 +978,6 @@
       [(spaceship-hit-confirm? (first loib) s) #true]
       [else (spaceship-hit? s (rest loib))])))
 
-;;> -1 An ormap fits this function pretty well
-
 ;;;; Tests
 (check-expect (spaceship-hit?
                (make-spaceship 'left (make-posn 50 50))
@@ -1102,13 +992,8 @@
 ;; GIVEN: the position of the spacebullet, the location the invader, and the
 ;;        location of the invader
 ;; RETURNS: true if the number is within range, false otherwise
-
-;;> better, but true if which of the three numbers is between the other two?
-
 (define (range? number low high)
   (and (> number low)(< number high)))
-
-;;> good job removing the unnecessary cond
 
 ;;;; Tests
 (check-expect (range? 5 0 10) #true)
@@ -1228,8 +1113,6 @@
                                  (make-posn 20 70)(make-posn 30 80)) 3
                            (make-scoreboard (make-posn 700 700) 0)
                            (make-mothership 'left (make-posn 50 50)) 51))
-
-;;> There should be more than one test for this.
 
 
 (big-bang WORLD-INIT
